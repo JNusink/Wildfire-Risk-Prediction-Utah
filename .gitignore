@@ -1,0 +1,21 @@
+# Ignore large data files
+data/*
+*.duckdb
+*.db
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Plots (optional — keep if small, ignore if huge)
+plots/*.png
+plots/*.jpg
+
+# Misc
+.DS_Store
+Thumbs.db
