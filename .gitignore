@@ -1,21 +1,31 @@
-# Ignore large data files
-data/*
+# Large data files - never track these
+data/
 *.duckdb
 *.db
+*.csv
+*.zip
+*.tif
+*.tfw
+*.aux.xml
+*.ovr
+*.vat.*
 
-# Python caches
+# Python caches & temp files
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
 
-# Jupyter
+# Jupyter & VS Code
 .ipynb_checkpoints/
-*.ipynb_checkpoints
-
-# Plots (optional — keep if small, ignore if huge)
-plots/*.png
-plots/*.jpg
+.vscode/
 
 # Misc
 .DS_Store
 Thumbs.db
+*.log
+*.tmp
