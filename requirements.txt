@@ -1,0 +1,11 @@
+duckdb
+pandas
+numpy
+scikit-learn
+xgboost
+shap
+matplotlib
+folium
+requests
+scipy
+tqdm

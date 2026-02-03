@@ -1,40 +1,20 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-dist/
-build/
-*.egg
-
-# Large data & database files
-data/
+# DuckDB database files
 *.duckdb
 *.db
-*.csv
-*.zip
-*.tif
-*.tfw
-*.aux.xml
-*.ovr
-*.vat.*
 
-# Large interactive maps (Folium HTML exports)
+# Large data folders
+data/
+LF2024_*
+
+# Large interactive map exports
 plots/*.html
 
-# Jupyter & VS Code
-.ipynb_checkpoints/
-.vscode/
-
-# Docker-related files (add these to keep repo clean)
-Dockerfile*
-docker-compose*
-.dockerignore
-*.dockerfile
-*.docker-compose.yml
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
 
 # Misc
-.DS_Store
-Thumbs.db
+.vscode/
 *.log
 *.tmp
