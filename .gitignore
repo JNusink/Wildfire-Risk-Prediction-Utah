@@ -1,4 +1,13 @@
-# Large data files - never track these
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Large data & database files
 data/
 *.duckdb
 *.db
@@ -10,19 +19,19 @@ data/
 *.ovr
 *.vat.*
 
-# Python caches & temp files
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
+# Large interactive maps (Folium HTML exports)
+plots/*.html
 
 # Jupyter & VS Code
 .ipynb_checkpoints/
 .vscode/
+
+# Docker-related files (add these to keep repo clean)
+Dockerfile*
+docker-compose*
+.dockerignore
+*.dockerfile
+*.docker-compose.yml
 
 # Misc
 .DS_Store
