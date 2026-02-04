@@ -1,41 +1,62 @@
 # Wildfire Risk Prediction – Utah Focus
 
-Capstone project predicting wildfire ignition risk in Utah using NASA FIRMS data, with a novel focus on **Great Salt Lake dust exposure** and NOAA weather integration.
+**Midterm Capstone Progress – Jared Nusink**
 
-## Project Overview
-This project analyzes historical wildfire data (2012–2026) to:
-- Identify patterns in fire intensity (brightness as proxy)
-- Incorporate **Utah-specific dust risk** from the shrinking Great Salt Lake
-- Merge real NOAA weather observations (precipitation, snow, wind, temperature)
-- Build a hybrid ML + physics model for better interpretability
-- Generate daily risk forecasts and visualizations
+Predicting wildfire ignition risk in Utah using NASA FIRMS data, with a novel focus on **Great Salt Lake dust exposure** as a drying/ignition factor.
 
-## Key Features & Novelty
-- **Great Salt Lake dust exposure score** — inverse distance to lake center (higher = higher drying/ignition risk)
-- **Proximity to roads** — proxy for human-caused ignition (major factor in Utah)
-- **Dryness proxies** — VPD approximation, diurnal temperature range, low-precip boost
-- Weather merge from NOAA GHCN-Daily stations
-- XGBoost classifier on grid-based daily data
-- Interactive daily risk forecast map
-- SHAP interpretability (shows feature importance & interactions)
+## Problem Definition / Research Question
+How can we better predict wildfire ignition risk in Utah by incorporating local environmental factors (dust from the shrinking Great Salt Lake) that traditional models ignore?
 
-## Folders & Files
-- `scripts/` — all Python code
-  - `1_ingest_fires_duckdb.py` — initial data ingestion
-  - `add_dust_feature.py` — dust exposure calculation
-  - `filter_utah_fires.py` — Utah subset
-  - `merge_noaa_weather_cleaned.py` — weather merge
-  - `daily_risk_forecast_v2.py` — daily risk prediction & map
-  - `train_daily_risk_classifier.py` — model training
-  - `utah_dust_map.py` — dust exposure map
-  - `check_*` scripts — database inspection
-- `plots/` — generated visuals
-  - EDA graphs (yearly/monthly trends)
-  - SHAP summary & interaction plots
-  - Static risk map screenshots (interactive HTML maps kept local)
-- `data/` — raw FIRMS & NOAA files (not in repo — too large)
-- `eco_pyric.duckdb` — DuckDB database (not in repo)
+**Need**: Utah has unique risks from dust deposition on fuels (especially in northern areas), human activity near roads/cities, and seasonal dryness. Most broad US models miss this regional signal.
 
-## How to Run (Locally)
-1. Clone the repo
-2. Install dependencies:
+## Novelty / Real-world Impact
+- First attempt (to my knowledge) to explicitly include Great Salt Lake dust exposure in a fire risk model.
+- Focus on Utah / Wasatch Front → direct relevance to population centers and recreation areas.
+- Hybrid ML + physics approach + SHAP interpretability → helps explain why certain conditions lead to higher risk.
+
+## Dataset Description + Metadata
+- **Source**: NASA FIRMS (VIIRS) active fire detections (2012–2026)
+- **Size**: ~3 million high-confidence records (filtered), Utah subset ~77,566 fires
+- **Key fields**: latitude, longitude, acq_date, brightness (intensity proxy), frp, confidence
+- **Cleaning**: Removed low-confidence detections, clipped to Utah bounding box (lat 37–42, lon -114 to -109)
+- **Augmentation**: Added dust exposure score (inverse distance to lake center)
+
+## Data Cleaning & Processing
+- DuckDB database (`eco_pyric.duckdb`) for efficient querying
+- Scripts: ingestion, filtering, dust calculation, NOAA weather merge
+- Feature engineering: dust_exposure, month, year, lat/lon, dryness proxies (VPD approx, temp range)
+
+## Data Analysis & Visualization
+- Yearly/monthly fire trends in Utah
+- Dust exposure distribution (higher near lake)
+- Interactive daily risk forecast map (heatmap of predicted ignition probability)
+- SHAP plots (feature importance & interactions)
+
+## Modeling
+- **Model**: XGBoost Classifier (binary ignition prediction on grid cells)
+- **Features**: dust_exposure, dist_to_road_km (human risk), dryness proxies, month, lat/lon
+- **Training data**: ~13.5M grid-date rows (0/1 ignition label), trained on 10M subset
+- **Performance** (10M-row subset): AUC-ROC = **0.9607** (strong for rare-event prediction)
+- **Hybrid adjustment**: Physics-based boost (FWI proxy using dust + weather)
+- **Interpretability**: SHAP shows dust and road proximity are important drivers
+
+## Results & Insights
+- Dust exposure amplifies risk in dry, low-precip conditions (SHAP interaction plots)
+- Human proximity (roads) is a dominant factor in populated areas
+- Daily risk map shows hotspots near lake and urban corridors
+
+## Repo Structure
+- `scripts/` — all code (ingestion, dust, weather merge, forecast, classifier)
+- `plots/` — SHAP plots, static risk map screenshots
+- Large files (DuckDB, interactive HTML maps, raw data) kept local
+
+## How to Run
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run daily risk forecast
+python scripts/daily_risk_forecast_v2.py
+
+# Train classifier
+python scripts/train_daily_risk_classifier.py
