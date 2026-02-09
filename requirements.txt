@@ -9,3 +9,5 @@ folium
 requests
 scipy
 tqdm
+joblib
+psutil

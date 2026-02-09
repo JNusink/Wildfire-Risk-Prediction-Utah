@@ -8,76 +8,68 @@ This project predicts **wildfire ignition risk** in Utah using NASA FIRMS data, 
 
 ## Problem & Research Question
 
-**Question**:  
-How can we improve wildfire ignition risk prediction in Utah by incorporating local environmental factors — particularly dust deposition from the shrinking Great Salt Lake — that most national models overlook?
+**Question**  
+How can we improve wildfire ignition risk prediction in Utah by incorporating Great Salt Lake dust exposure and human proximity factors that most national models overlook?
 
 **Why Utah?**  
-- Local relevance to the Wasatch Front and Saratoga Springs  
-- Unique dust risk from exposed playa as the lake recedes  
-- High proportion of human-caused ignitions near roads, cities, and recreation areas  
-- Seasonal dryness and drought patterns amplify fire probability
+- Unique dust risk from the shrinking Great Salt Lake (exposed playa dries vegetation and increases flammability)  
+- High rate of human-caused ignitions near roads, cities, and recreation areas  
+- Seasonal dryness and drought amplify risk  
+- Local relevance to Wasatch Front communities (Salt Lake City, Provo, Ogden, Saratoga Springs)
 
 ## Novelty & Real-world Impact
 
-- Explicit modeling of **Great Salt Lake dust exposure** (inverse distance score) — likely the first in a predictive fire model  
-- Integration of **human proximity** (distance to roads) as a proxy for ignition likelihood  
-- Hybrid approach: ML (XGBoost classifier) + simple physics-inspired dryness adjustment  
-- Interpretable results via SHAP (explains why certain conditions lead to higher risk)  
-- Practical value: better localized risk awareness for Wasatch Front communities and recreation areas
+- **Novel feature**: Great Salt Lake dust exposure score (inverse distance to lake center) — likely the first in a predictive fire model  
+- **Human ignition proxy**: Distance to major roads and cities  
+- **Hybrid approach**: XGBoost classifier + physics-inspired dryness adjustment  
+- **Interpretability**: SHAP values explain predictions and feature interactions  
+- **Daily forecast map**: Shows predicted ignition probability across Utah grid cells  
+- **Impact**: Improved localized risk awareness and prevention for Utah communities
 
 ## Dataset & Processing
 
 - **Source**: NASA FIRMS VIIRS active fire detections (2012–2026)  
 - **Size**: ~3 million high-confidence records → filtered to **77,566 Utah fires**  
 - **Key fields**: latitude, longitude, acq_date, brightness (intensity proxy), frp, confidence  
-- **Cleaning & filtering**:  
-  - Removed low-confidence detections  
-  - Clipped to Utah bounding box (lat 37–42, lon -114 to -109)  
+- **Cleaning**: Removed low-confidence detections, clipped to Utah bounding box  
+- **Grid construction**: 0.1° resolution (~2,652 cells) × daily history = **13,570,284 grid-date rows**  
+- **Labeling**: Binary ignition (1 if any fire detected in cell that day, 0 otherwise)  
 - **Feature engineering**:  
-  - Dust exposure score (inverse distance to lake center)  
+  - Dust exposure (inverse distance to lake)  
   - Road proximity (distance to major highways)  
-  - Dryness proxies (VPD approximation, diurnal temperature range, low-precip boost)  
+  - Dryness proxies (VPD approximation, diurnal temp range, low-precip boost)  
   - Month, latitude, longitude  
-- **Data structure**: ~13.57 million grid-date rows (0.1° cells × daily history) with binary ignition label (0/1)  
-- Large files (DuckDB database, raw data) kept local — not in repo
+- **Storage**: DuckDB database (`eco_pyric.duckdb`) — large file kept local
 
 ## Modeling
 
-- **Task**: Binary classification — predict whether a fire will occur in a 0.1° grid cell on a given day  
-- **Model**: XGBoost Classifier with imbalance handling (`scale_pos_weight`)  
-- **Training data**: Full ~13.57 million grid-date rows (trained on 10M+ subset for midterm)  
+- **Task**: Binary classification — predict ignition (0/1) per grid cell on any day  
+- **Model**: XGBoost Classifier with imbalance handling (`scale_pos_weight = 3301`)  
+- **Training**: Full 13,570,284 rows (10M+ subset used for experiments)  
+- **Features**: dust_exposure, dist_to_road_km, dryness proxies, month, lat/lon  
 - **Performance** (10M-row subset):  
   - Accuracy: 90.80%  
-  - **AUC-ROC: 0.9671** (very strong for rare-event prediction)  
-  - Recall for fire days (class 1): 0.91 (catches 91% of actual fires)  
+  - **AUC-ROC: 0.9671** (excellent for rare-event prediction)  
+  - Recall for fire days: 0.91 (catches 91% of actual fires)  
 - **Interpretability**: SHAP values show feature importance and interactions
 
 ## Daily Risk Forecast Map
 
-Interactive map showing predicted ignition probability (0–1) across Utah grid cells for the current day:
-- Uses real weather forecast (Open-Meteo)
+Interactive map predicting ignition probability (0–1) across Utah grid cells for the current day:  
+- Uses real weather forecast (Open-Meteo)  
 - Incorporates dust exposure, road proximity, dryness proxies  
-- **Interactive version** (large HTML file) kept local due to size  
-- **Static screenshots** are in the `plots/` folder
+- **ML-powered** (V3 uses trained classifier probabilities)  
+- **Interactive HTML** kept local (large file size)  
+- **Static screenshots** available in `plots/`
 
-## Repo Structure
+## Interactive Dashboard (Bonus)
 
-- `scripts/` — all Python code  
-  - data ingestion, dust calculation, weather merge  
-  - daily risk forecast & ML classifier training  
-  - map generation  
-- `plots/` — SHAP summaries, static map screenshots  
-- `README.md` — this file  
-- `.gitignore` — excludes large files (DuckDB, raw data, interactive HTML maps)
+A simple Streamlit dashboard visualizes:  
+- Daily risk map  
+- Top high-risk grid cells  
+- SHAP feature importance  
 
-## How to Run (Locally)
-
+Run locally:  
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Generate daily risk forecast map
-python scripts/daily_risk_forecast_v2.py
-
-# Train classifier (takes time on large grid)
-python scripts/train_daily_risk_classifier_full.py
+pip install streamlit streamlit-folium
+streamlit run dashboard.py
